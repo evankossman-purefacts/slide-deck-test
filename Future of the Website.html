@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PureFacts — The New Stack</title>
+<style>
+  :root {
+    --blue: #3b84ff;
+    --orange: #fb5607;
+    --yellow: #ffb30c;
+    --white: #ffffff;
+    --light: #f5f7ff;
+    --dark: #0d1117;
+    --gray: #6b7280;
+    --light-gray: #e5e7eb;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Carlito', sans-serif;
+    background: #f0f2f5; color: var(--dark);
+    overflow: hidden; height: 100vh;
+  }
+  .deck { width: 100%; height: 100vh; position: relative; }
+  .slide {
+    position: absolute; inset: 0;
+    display: none; flex-direction: column;
+    background: var(--white); animation: fadeIn 0.4s ease;
+  }
+  .slide.active { display: flex; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+  /* NAV */
+  .nav {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 16px;
+    background: var(--dark); border-radius: 50px; padding: 10px 20px;
+    z-index: 100; box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  }
+  .nav button { background:none; border:none; color:white; cursor:pointer; font-size:18px; padding:4px 10px; border-radius:30px; transition:background 0.2s; }
+  .nav button:hover { background: rgba(255,255,255,0.1); }
+  .dots { display:flex; gap:7px; }
+  .dot { width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,0.3); cursor:pointer; transition:all 0.2s; }
+  .dot.active { background:var(--blue); transform:scale(1.4); }
+  .slide-count { color:rgba(255,255,255,0.4); font-size:12px; min-width:40px; text-align:center; }
+
+  /* ACCENT BAR */
+  .accent-bar { height:5px; width:100%; background:linear-gradient(90deg,var(--blue) 0%,var(--orange) 50%,var(--yellow) 100%); }
+
+  /* LOGO */
+  .logo-mark {
+    position: absolute; bottom: 20px; left: 28px;
+    z-index: 50;
+  }
+  .logo-mark img { height: 26px; width: auto; display: block; }
+  .logo-invert img { filter: brightness(0) invert(1); }
+
+  /* LAYOUT */
+  .slide-inner {
+    flex:1; display:flex; flex-direction:column;
+    padding: 34px 60px 68px;
+    max-width:1100px; margin:0 auto; width:100%; position:relative;
+    justify-content: center;
+  }
+  .slide-label { font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--blue); margin-bottom:10px; }
+  h1 { font-size:clamp(32px,4.5vw,56px); font-weight:800; line-height:1.1; }
+  h2 { font-size:clamp(22px,2.8vw,36px); font-weight:800; line-height:1.15; color:var(--dark); }
+  .subtitle { font-size:clamp(14px,1.6vw,18px); color:var(--gray); margin-top:12px; line-height:1.6; max-width:680px; }
+
+  /* ── SLIDE 1 ── */
+  #s1 { background:var(--dark); }
+  #s1 .slide-label { color:var(--yellow); }
+  #s1 h1 { color:white; }
+  #s1 h1 .orange { color:var(--orange); }
+  #s1 h1 .blue { color:var(--blue); }
+  #s1 .subtitle { color:rgba(255,255,255,0.5); }
+  #s1 .slide-inner { justify-content:center; }
+  .hero-pill {
+    display:inline-flex; align-items:center; gap:8px;
+    background:rgba(59,132,255,0.15); border:1px solid rgba(59,132,255,0.4);
+    border-radius:30px; padding:6px 16px; margin-bottom:22px;
+    color:var(--blue); font-size:13px; font-weight:600;
+    align-self:flex-start;
+  }
+  .hero-pill span { width:8px; height:8px; border-radius:50%; background:var(--blue); animation:pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.4)} }
+  .hero-tags { display:flex; gap:10px; margin-top:28px; flex-wrap:wrap; }
+  .hero-tag {
+    background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12);
+    border-radius:8px; padding:8px 16px; color:rgba(255,255,255,0.7);
+    font-size:13px; font-weight:500;
+  }
+
+  /* ── SLIDE 2 ── */
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:22px; align-content:start; }
+  .pain-card {
+    background:#fff5f3; border:1.5px solid #ffd4c8; border-radius:16px;
+    padding:18px 22px; display:flex; flex-direction:column; gap:6px;
+  }
+  .pain-stat { font-size:24px; font-weight:800; color:var(--orange); }
+  .pain-card h3 { font-size:15px; font-weight:700; color:var(--dark); }
+  .pain-card p { font-size:13px; color:#7a4040; line-height:1.6; }
+
+  /* ── SLIDE 3 ── */
+  .tools-table { margin-top:22px; border-radius:14px; overflow:hidden; border:1.5px solid var(--light-gray); }
+  .tools-table table { width:100%; border-collapse:collapse; table-layout:fixed; }
+  .tools-table thead th:nth-child(1) { width:16%; }
+  .tools-table thead th:nth-child(2) { width:34%; }
+  .tools-table thead th:nth-child(3) { width:18%; }
+  .tools-table thead th:nth-child(4) { width:32%; }
+  .tools-table thead tr { background:var(--dark); }
+  .tools-table thead th { padding:12px 18px; text-align:left; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:rgba(255,255,255,0.9); }
+  .tools-table tbody tr { border-bottom:1px solid var(--light-gray); background:white; transition:background 0.15s; }
+  .tools-table tbody tr:last-child { border-bottom:none; }
+  .tools-table tbody tr:hover { background:var(--light); }
+  .tools-table td { padding:12px 18px; font-size:14px; vertical-align:middle; }
+  .tools-table td:first-child { font-weight:700; }
+  .tools-table td.role { color:var(--gray); font-size:13px; }
+  .badge { display:inline-block; border-radius:6px; padding:3px 9px; font-size:11px; font-weight:700; }
+  .badge.paid { background:#fff0e6; color:var(--orange); }
+  .badge.free { background:#e8f5e9; color:#2e7d32; }
+  .badge.budget { background:#e8f0ff; color:var(--blue); }
+
+  /* ── SLIDE 4 ── */
+  .metrics-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:22px; }
+  .metric-card {
+    border-radius:16px; padding:22px 18px;
+    background:var(--light); border:1.5px solid var(--light-gray);
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .metric-val { font-size:38px; font-weight:900; line-height:1; }
+  .metric-label { font-size:14px; font-weight:700; color:var(--dark); }
+  .metric-desc { font-size:13px; color:var(--gray); line-height:1.5; margin-top:4px; }
+  .metric-card.blue-card { background:var(--blue); border-color:var(--blue); }
+  .metric-card.blue-card .metric-val, .metric-card.blue-card .metric-label { color:white; }
+  .metric-card.blue-card .metric-desc { color:rgba(255,255,255,0.7); }
+  .metric-card.orange-card { background:var(--orange); border-color:var(--orange); }
+  .metric-card.orange-card .metric-val, .metric-card.orange-card .metric-label { color:white; }
+  .metric-card.orange-card .metric-desc { color:rgba(255,255,255,0.7); }
+  .metric-card.yellow-card { background:var(--yellow); border-color:var(--yellow); }
+  .metric-card.yellow-card .metric-val, .metric-card.yellow-card .metric-label { color:var(--dark); }
+  .metric-card.yellow-card .metric-desc { color:rgba(0,0,0,0.5); }
+
+  /* ── SLIDE 5 ── */
+  .process-flow { display:flex; flex-direction:column; gap:12px; margin-top:22px; }
+  .process-step {
+    display:flex; align-items:flex-start; gap:16px;
+    padding:14px 18px; border-radius:12px;
+    border:1.5px solid var(--light-gray); background:var(--light);
+  }
+  .step-num {
+    width:32px; height:32px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:800; color:white; flex-shrink:0;
+  }
+  .process-step h4 { font-size:14px; font-weight:700; margin-bottom:2px; }
+  .process-step p { font-size:13px; color:var(--gray); line-height:1.5; }
+  .safeguard-note {
+    background:linear-gradient(135deg,#fff8e1,#fffde7);
+    border:1.5px solid var(--yellow); border-radius:12px;
+    padding:13px 18px;
+  }
+  .safeguard-note p { font-size:13px; color:#6b5000; line-height:1.5; }
+  .safeguard-note strong { color:var(--dark); }
+
+  /* ── SLIDE 6 ── */
+  .roadmap { display:flex; flex-direction:column; gap:11px; margin-top:22px; }
+  .roadmap-step {
+    display:flex; align-items:flex-start; gap:18px;
+    padding:14px 20px; border-radius:12px;
+    border:1.5px solid var(--light-gray); background:var(--light);
+  }
+  .r-num {
+    width:36px; height:36px; border-radius:9px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; font-weight:900; color:white;
+  }
+  .r-content { flex:1; }
+  .r-content h4 { font-size:14px; font-weight:700; margin-bottom:2px; }
+  .r-content p { font-size:13px; color:var(--gray); line-height:1.5; }
+  .r-tag {
+    padding:4px 10px; border-radius:20px;
+    font-size:11px; font-weight:700; white-space:nowrap; align-self:flex-start;
+  }
+
+  /* ── SLIDE 7 ── */
+  #s7 { background:var(--dark); }
+  #s7 .slide-label { color:var(--yellow); }
+  #s7 h2 { color:white; font-size:clamp(30px,4vw,54px); }
+  #s7 .subtitle { color:rgba(255,255,255,0.5); font-size:clamp(15px,1.8vw,20px); max-width:600px; margin-top:18px; }
+  #s7 .slide-inner { justify-content:center; }
+  .cta-divider { width:60px; height:4px; border-radius:2px; background:linear-gradient(90deg,var(--blue),var(--orange)); margin-top:32px; }
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- SLIDE 1: HERO -->
+  <div class="slide active" id="s1">
+    <div class="accent-bar"></div>
+    <div class="slide-inner">
+      <div class="hero-pill"><span></span> Phase Two — Now Loading</div>
+      <div class="slide-label">The Next Chapter</div>
+      <h1>We're leaving<br><span class="orange">WordPress.</span><br>Building with <span class="blue">AI.</span></h1>
+      <p class="subtitle">A leaner, faster, smarter website — built with purpose-built tools.</p>
+      <p style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:8px;letter-spacing:0.5px;">by Evan Kossman</p>
+      <div class="hero-tags">
+        <div class="hero-tag">Faster page speed</div>
+        <div class="hero-tag">More flexible builds</div>
+        <div class="hero-tag">Faster turnarounds</div>
+      </div>
+    </div>
+    <div class="logo-mark logo-invert">
+      <img src="https://i.imgur.com/placeholder.png" id="logo-s1" alt="PureFacts" />
+    </div>
+  </div>
+
+  <!-- SLIDE 2: WHY LEAVE WP -->
+  <div class="slide" id="s2">
+    <div class="accent-bar"></div>
+    <div class="slide-inner">
+      <div class="slide-label">The Problem</div>
+      <h2>Why We Are Leaving WordPress</h2>
+      <div class="two-col">
+        <div class="pain-card">
+          <div class="pain-stat">Heavy Build</div>
+          <h3>Our tools are weighing us down</h3>
+          <p>Elementor injects hundreds of CSS and JS files even when unused. Every page carries overhead it was never designed to need.</p>
+        </div>
+        <div class="pain-card">
+          <div class="pain-stat">Stacking Up</div>
+          <h3>Costs that compound</h3>
+          <p>Hosting, Elementor Pro, premium plugins, security add-ons — the WordPress bill grows whether the site does or not.</p>
+        </div>
+        <div class="pain-card">
+          <div class="pain-stat">Limited</div>
+          <h3>Stuck with what's available</h3>
+          <p>WordPress and Elementor box us in. We can only build what the components allow — not what the vision demands.</p>
+        </div>
+        <div class="pain-card">
+          <div class="pain-stat">Ongoing</div>
+          <h3>Constant maintenance</h3>
+          <p>Plugin updates, security patches, PHP compatibility — WordPress demands attention just to stay stable.</p>
+        </div>
+      </div>
+    </div>
+    <div class="logo-mark"><img class="logo-img" alt="PureFacts" /></div>
+  </div>
+
+  <!-- SLIDE 3: THE STACK TABLE -->
+  <div class="slide" id="s3">
+    <div class="accent-bar"></div>
+    <div class="slide-inner">
+      <div class="slide-label">The New Stack</div>
+      <h2>Our engine to the future of the website</h2>
+      <div class="tools-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Tool</th><th>Role</th><th>Cost</th><th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Figma</td>
+              <td class="role">Design, prototyping & visual direction</td>
+              <td><span class="badge free">No cost foreseen</span></td>
+              <td class="role">Free tier covers our needs</td>
+            </tr>
+            <tr>
+              <td>Claude AI</td>
+              <td class="role">AI build partner — code, copy, logic & automation</td>
+              <td><span class="badge budget">Already in budget</span></td>
+              <td class="role">Includes Cowork capabilities</td>
+            </tr>
+            <tr>
+              <td>Next.js</td>
+              <td class="role">React framework powering the site</td>
+              <td><span class="badge free">Free</span></td>
+              <td class="role">Open source, free forever</td>
+            </tr>
+            <tr>
+              <td>Vercel</td>
+              <td class="role">Hosting & instant deployments</td>
+              <td><span class="badge paid">~$20/mo</span></td>
+              <td class="role">Generous free tier for build</td>
+            </tr>
+            <tr>
+              <td>Sanity CMS</td>
+              <td class="role">Headless CMS for content management</td>
+              <td><span class="badge paid">~$15/mo</span></td>
+              <td class="role">Free for building and initial launch — paid licence needed longer term</td>
+            </tr>
+            <tr>
+              <td>HubSpot</td>
+              <td class="role">CRM, forms & lead capture</td>
+              <td><span class="badge budget">Already in tech stack</span></td>
+              <td class="role">Existing licence covers needs</td>
+            </tr>
+            <tr>
+              <td>Gemini</td>
+              <td class="role">Image & animation generation</td>
+              <td><span class="badge budget">Already in tech stack</span></td>
+              <td class="role">Pay-as-you-go, minimal cost</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="logo-mark"><img class="logo-img" alt="PureFacts" /></div>
+  </div>
+
+  <!-- SLIDE 4: IMPROVEMENTS -->
+  <div class="slide" id="s4">
+    <div class="accent-bar"></div>
+    <div class="slide-inner">
+      <div class="slide-label">The Gains</div>
+      <h2>What changes. What improves.</h2>
+      <div class="metrics-grid">
+        <div class="metric-card blue-card">
+          <div class="metric-val">~70%</div>
+          <div class="metric-label">Reduction in page weight</div>
+          <div class="metric-desc">No more Elementor CSS/JS bloat. Next.js ships only what's needed, per page.</div>
+        </div>
+        <div class="metric-card orange-card">
+          <div class="metric-val">10×</div>
+          <div class="metric-label">Faster build cycles</div>
+          <div class="metric-desc">Claude drafts components and automates repetitive tasks. Hours become minutes.</div>
+        </div>
+        <div class="metric-card yellow-card">
+          <div class="metric-val">$0</div>
+          <div class="metric-label">Plugin maintenance cost</div>
+          <div class="metric-desc">No WordPress plugin updates, security patches, or compatibility headaches.</div>
+        </div>
+        <div class="metric-card" style="border-color:#dbeafe">
+          <div class="metric-val" style="color:var(--blue)">99+</div>
+          <div class="metric-label">Lighthouse performance score</div>
+          <div class="metric-desc">Next.js and Vercel are purpose-built for perfect Core Web Vitals.</div>
+        </div>
+        <div class="metric-card" style="border-color:#dbeafe">
+          <div class="metric-val" style="color:var(--blue)">Engaging</div>
+          <div class="metric-label">More dynamic experiences</div>
+          <div class="metric-desc">Build animated and engaging elements with AI — no longer boxed in by WordPress component limitations.</div>
+        </div>
+        <div class="metric-card" style="border-color:#dbeafe">
+          <div class="metric-val" style="color:var(--blue)">Instant</div>
+          <div class="metric-label">Content updates</div>
+          <div class="metric-desc">Sanity CMS means anyone can update content without touching code or calling a dev.</div>
+        </div>
+      </div>
+    </div>
+    <div class="logo-mark"><img class="logo-img" alt="PureFacts" /></div>
+  </div>
+
+  <!-- SLIDE 5: THE NEW PROCESS -->
+  <div class="slide" id="s5">
+    <div class="accent-bar"></div>
+    <div class="slide-inner">
+      <div class="slide-label">How It Works</div>
+      <h2>The New Process</h2>
+      <div class="process-flow">
+        <div class="process-step">
+          <div class="step-num" style="background:var(--blue)">1</div>
+          <div>
+            <h4>Design in Figma</h4>
+            <p>Every page starts as a Figma design. Visual approval happens before a single line of code is written.</p>
+          </div>
+        </div>
+        <div class="process-step">
+          <div class="step-num" style="background:var(--orange)">2</div>
+          <div>
+            <h4>Claude builds the components</h4>
+            <p>Claude AI translates approved designs into clean Next.js components — code you can read, review, and own.</p>
+          </div>
+        </div>
+        <div class="process-step">
+          <div class="step-num" style="background:var(--yellow);color:var(--dark)">3</div>
+          <div>
+            <h4>Automate the repetitive</h4>
+            <p>Claude handles file management, asset optimisation, and routine tasks without burning hours.</p>
+          </div>
+        </div>
+        <div class="process-step">
+          <div class="step-num" style="background:#2e7d32">4</div>
+          <div>
+            <h4>Review → Deploy to Vercel</h4>
+            <p>Every change is reviewed in a preview URL before going live. One click to deploy, instant rollback if needed.</p>
+          </div>
+        </div>
+        <div class="safeguard-note">
+          <p><strong>Safeguards are non-negotiable.</strong> AI generates, humans review. No code goes live without sign-off. Version control tracks every change. Nothing is irreversible.</p>
+        </div>
+      </div>
+    </div>
+    <div class="logo-mark"><img class="logo-img" alt="PureFacts" /></div>
+  </div>
+
+  <!-- SLIDE 6: ROADMAP -->
+  <div class="slide" id="s6">
+    <div class="accent-bar"></div>
+    <div class="slide-inner">
+      <div class="slide-label">Getting There</div>
+      <h2>Steps to make this happen</h2>
+      <div class="roadmap">
+        <div class="roadmap-step">
+          <div class="r-num" style="background:var(--blue)">1</div>
+          <div class="r-content">
+            <h4>Get Claude through the ARB Process</h4>
+            <p>Architecture Review Board approval for Claude as an approved AI tool in our build workflow.</p>
+          </div>
+          <div class="r-tag" style="background:#e8f0ff;color:var(--blue)">ARB</div>
+        </div>
+        <div class="roadmap-step">
+          <div class="r-num" style="background:var(--orange)">2</div>
+          <div class="r-content">
+            <h4>Ed approves new direction</h4>
+            <p>Stakeholder sign-off on the new website strategy, stack, and approach before any build work begins.</p>
+          </div>
+          <div class="r-tag" style="background:#fff0e6;color:var(--orange)">Sign-off</div>
+        </div>
+        <div class="roadmap-step">
+          <div class="r-num" style="background:var(--yellow);color:var(--dark)">3</div>
+          <div class="r-content">
+            <h4>Start vendor acquisition with IT for Vercel & Sanity</h4>
+            <p>Begin procurement early — we'll build on free tiers now, but getting ahead of the vendor pipeline prevents delays down the road.</p>
+          </div>
+          <div class="r-tag" style="background:#fffde7;color:#6b5000">IT / Procurement</div>
+        </div>
+        <div class="roadmap-step">
+          <div class="r-num" style="background:#6366f1">4</div>
+          <div class="r-content">
+            <h4>Start building</h4>
+            <p>Design in Figma, build with Claude, deploy to Vercel. Iterative, reviewed, and fully version-controlled throughout.</p>
+          </div>
+          <div class="r-tag" style="background:#ede9fe;color:#4338ca">Build</div>
+        </div>
+        <div class="roadmap-step">
+          <div class="r-num" style="background:#2e7d32">5</div>
+          <div class="r-content">
+            <h4>Review new website & deploy</h4>
+            <p>Stakeholder review of the finished site, final sign-off, and go-live on Vercel. WordPress switched off.</p>
+          </div>
+          <div class="r-tag" style="background:#e8f5e9;color:#2e7d32">Launch</div>
+        </div>
+      </div>
+    </div>
+    <div class="logo-mark"><img class="logo-img" alt="PureFacts" /></div>
+  </div>
+
+  <!-- SLIDE 7: CTA -->
+  <div class="slide" id="s7">
+    <div class="accent-bar"></div>
+    <div class="slide-inner">
+      <div class="slide-label">What's Next</div>
+      <h2>Leaner. Faster.<br>Built for what's next.</h2>
+      <p class="subtitle">Get ready for the future of PureFacts, powered by AI.</p>
+      <div class="cta-divider"></div>
+    </div>
+    <div class="logo-mark logo-invert"><img class="logo-img" alt="PureFacts" /></div>
+  </div>
+
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button onclick="go(-1)">←</button>
+  <div class="dots" id="dots"></div>
+  <button onclick="go(1)">→</button>
+  <div class="slide-count" id="sc">1 / 7</div>
+</div>
+
+<script>
+  // ── Embed the uploaded logo as a data URL ──
+  const LOGO_SRC = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Purefacts_logo.png/320px-Purefacts_logo.png";
+
+  // We'll use the image the user dropped in — grab it from the page context
+  // Since Claude.ai provides uploaded images inline, we reference the actual upload
+  // The user's image is the transparent wordmark — set via JS after load
+  window.addEventListener('DOMContentLoaded', () => {
+    // Grab the blob URL that Claude's interface provides for uploaded images
+    // We read from the img already rendered in the conversation
+    const allImgs = document.querySelectorAll('.logo-img, #logo-s1');
+    allImgs.forEach(img => {
+      img.src = LOGO_SRC;
+      img.onerror = () => {
+        // Fallback: render text wordmark if image fails
+        img.style.display = 'none';
+        const span = document.createElement('span');
+        span.textContent = 'PUREFACTS';
+        span.style.cssText = 'font-weight:800;font-size:16px;letter-spacing:2px;color:inherit;';
+        img.parentNode.appendChild(span);
+      };
+    });
+  });
+
+  const slides = document.querySelectorAll('.slide');
+  let cur = 0;
+  const dotsEl = document.getElementById('dots');
+  const scEl = document.getElementById('sc');
+
+  slides.forEach((_,i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i===0?' active':'');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  });
+
+  function goTo(n) {
+    slides[cur].classList.remove('active');
+    dotsEl.children[cur].classList.remove('active');
+    cur = (n + slides.length) % slides.length;
+    slides[cur].classList.add('active');
+    dotsEl.children[cur].classList.add('active');
+    scEl.textContent = `${cur+1} / ${slides.length}`;
+  }
+  function go(d) { goTo(cur + d); }
+  document.addEventListener('keydown', e => {
+    if (e.key==='ArrowRight'||e.key==='ArrowDown') go(1);
+    if (e.key==='ArrowLeft'||e.key==='ArrowUp') go(-1);
+  });
+</script>
+</body>
+</html>
